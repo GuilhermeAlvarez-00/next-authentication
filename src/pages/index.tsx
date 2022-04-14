@@ -1,11 +1,14 @@
 import { FormEvent, useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import styles from '../styles/Home.module.css'
 
 export default function Home(): JSX.Element {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  function handleSubmit(event: FormEvent) {
+  const { signIn } = useAuth()
+
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault()
 
     const data = {
@@ -13,7 +16,7 @@ export default function Home(): JSX.Element {
       password,
     }
 
-    console.log(data)
+    await signIn(data)
   }
 
   return (
