@@ -61,13 +61,11 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedRequestQueue.push({
             onSucess: (token: string) => {
-              console.log('deu certo', originalConfig)
               originalConfig.headers['Authorization'] = `Bearer ${token}`
 
               resolve(api(originalConfig))
             },
             onFailure: (err: AxiosError) => {
-              console.log('deu errado', originalConfig)
               reject(err)
             },
           })
