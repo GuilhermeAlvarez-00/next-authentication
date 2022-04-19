@@ -2,6 +2,8 @@ import axios, { AxiosError } from 'axios'
 import { parseCookies, setCookie } from 'nookies'
 
 let cookies = parseCookies()
+let isRefreshing = false
+let failedRequestQueue = []
 
 export const api = axios.create({
   baseURL: 'http://localhost:3333',
@@ -20,24 +22,55 @@ api.interceptors.response.use(
         cookies = parseCookies()
 
         const { 'nexttest.refreshToken': refreshToken } = cookies
+        const originalConfig = error.config
 
-        api.post('/refresh', { refreshToken }).then((response) => {
-          const { token } = response.data
+        if (!isRefreshing) {
+          isRefreshing = true
 
-          setCookie(undefined, 'nexttest.token', token, {
-            maxAge: 60 * 60 * 24 * 30, // 30 days
+          api
+            .post('/refresh', { refreshToken })
+            .then((response) => {
+              const { token } = response.data
+
+              setCookie(undefined, 'nexttest.token', token, {
+                maxAge: 60 * 60 * 24 * 30, // 30 days
+              })
+
+              setCookie(
+                undefined,
+                'nexttest.refreshToken',
+                response.data.refreshToken,
+                {
+                  maxAge: 60 * 60 * 24 * 30, // 30 days
+                }
+              )
+
+              api.defaults.headers['Authorization'] = `Bearer ${token}`
+              failedRequestQueue.forEach((request) => request.onSucess(token))
+              failedRequestQueue = []
+            })
+            .catch((err) => {
+              failedRequestQueue.forEach((request) => request.onFailure(err))
+              failedRequestQueue = []
+            })
+            .then(() => {
+              isRefreshing = false
+            })
+        }
+
+        return new Promise((resolve, reject) => {
+          failedRequestQueue.push({
+            onSucess: (token: string) => {
+              console.log('deu certo', originalConfig)
+              originalConfig.headers['Authorization'] = `Bearer ${token}`
+
+              resolve(api(originalConfig))
+            },
+            onFailure: (err: AxiosError) => {
+              console.log('deu errado', originalConfig)
+              reject(err)
+            },
           })
-
-          setCookie(
-            undefined,
-            'nexttest.refreshToken',
-            response.data.refreshToken,
-            {
-              maxAge: 60 * 60 * 24 * 30, // 30 days
-            }
-          )
-
-          api.defaults.headers['Authorization'] = `Bearer ${token}`
         })
       } else {
       }
