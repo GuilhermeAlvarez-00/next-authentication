@@ -7,7 +7,10 @@ export default function Dashboard() {
   const { user, isAuthenticated } = useAuth()
 
   useEffect(() => {
-    api.get('/me').then((response) => console.log(response.data))
+    api
+      .get('/me')
+      .then((response) => console.log(response.data))
+      .catch((err) => console.log(err))
   }, [])
 
   return (
