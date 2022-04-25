@@ -41,7 +41,7 @@ const AuthContext = createContext({} as AuthContextProps)
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User>()
-  const isAuthenticated = false
+  const isAuthenticated = !!user
 
   useEffect(() => {
     const { 'nexttest.token': token } = parseCookies()
