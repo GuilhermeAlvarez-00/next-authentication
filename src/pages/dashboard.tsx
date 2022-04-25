@@ -3,13 +3,15 @@ import { useAuth } from '../contexts/AuthContext'
 import { withSSRAuth } from '../utils/withSSRAuth'
 
 export default function Dashboard() {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
 
   return (
     <div>
       <h2>Dashboard: {user?.email}</h2>
 
-      <Can permissions={['metric.list']}>
+      <button onClick={signOut}>SignOut</button>
+
+      <Can permissions={['metrics.list']}>
         <div>Metricas</div>
       </Can>
     </div>
